@@ -1,0 +1,291 @@
+activity_task_item.xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <!-- Title of the task -->
+    <TextView
+        android:id="@+id/titleView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textColor="@android:color/black" />
+
+    <!-- Description of the task -->
+    <TextView
+        android:id="@+id/descView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textColor="@android:color/darker_gray" />
+
+    <!-- Button to delete task -->
+    <Button
+        android:id="@+id/deleteButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Delete" />
+</LinearLayout>
+
+
+
+
+task_item.java
+package com.example.taskappgpt;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Bundle;
+
+public class Task_Item extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_task_item);
+    }
+}
+
+
+
+
+
+activity_adad_task.xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+    <EditText
+        android:id="@+id/titleInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Task Title"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/descInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Task Description"
+        android:textSize="16sp"
+        android:inputType="textMultiLine"
+        android:minLines="3" />
+
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Save Task"
+        android:layout_marginTop="16dp" />
+
+</LinearLayout>
+
+
+add_task.java
+package com.example.taskappgpt;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+
+public class Add_Task extends AppCompatActivity {
+
+    private EditText titleInput, descInput;
+    private Button saveButton;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_add_task);
+        titleInput = findViewById(R.id.titleInput);
+        descInput = findViewById(R.id.descInput);
+        saveButton = findViewById(R.id.saveButton);
+
+        saveButton.setOnClickListener(view -> {
+            String title = titleInput.getText().toString();
+            String description = descInput.getText().toString();
+
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra("title", title);
+            resultIntent.putExtra("description", description);
+            setResult(RESULT_OK, resultIntent);
+            finish();
+        });
+    }
+}
+
+
+task_item.java
+package com.example.taskappgpt;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Bundle;
+
+public class Task_Item extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_task_item);
+    }
+}
+\
+mainactivity.java
+package com.example.taskappgpt;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.Button;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity {
+
+    private RecyclerView taskRecyclerView;
+    private TaskAdapter taskAdapter;
+    private List<Task> tasks;
+    private Button addTaskButton;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        taskRecyclerView = findViewById(R.id.taskRecycleView);
+        addTaskButton = findViewById(R.id.addTaskButton);
+
+        // Initialize task list and adapter
+        tasks = new ArrayList<>();
+        taskAdapter = new TaskAdapter(tasks);
+
+        // Set RecyclerView properties
+        taskRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        taskRecyclerView.setAdapter(taskAdapter);
+
+        // Handle Add Task button click
+        addTaskButton.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, Add_Task.class);
+            startActivityForResult(intent, 1);
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1 && resultCode == RESULT_OK) {
+            String title = data.getStringExtra("title");
+            String description = data.getStringExtra("description");
+
+            Task newTask = new Task(title, description);
+            taskAdapter.addTask(newTask);
+        }
+    }
+}
+
+
+taskadapter.java
+package com.example.taskappgpt;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.List;
+
+public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
+        private List<Task> tasks;
+
+        // Constructor
+    public TaskAdapter(List<Task> tasks) {
+            this.tasks = tasks;
+        }
+
+        @Override
+        public TaskViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            // Inflate the item layout
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.activity_task_item, parent, false);
+            return new TaskViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(TaskViewHolder holder, int position) {
+            // Get the task at the current position
+            Task task = tasks.get(position);
+
+            // Set the task title and description
+            holder.titleView.setText(task.getTitle());
+            holder.descView.setText(task.getDescription());
+
+            // Set the delete button functionality
+            holder.deleteButton.setOnClickListener(v -> {
+                tasks.remove(position);
+                notifyItemRemoved(position);
+            });
+        }
+
+        @Override
+        public int getItemCount() {
+            return tasks.size();
+        }
+
+        // ViewHolder class to hold references to the views in each task item
+        public static class TaskViewHolder extends RecyclerView.ViewHolder {
+            TextView titleView, descView;
+            Button deleteButton;
+
+            public TaskViewHolder(View itemView) {
+                super(itemView);
+                titleView = itemView.findViewById(R.id.titleView);
+                descView = itemView.findViewById(R.id.descView);
+                deleteButton = itemView.findViewById(R.id.deleteButton);
+            }
+        }
+
+        // Method to add a task to the list
+        public void addTask(Task task) {
+            tasks.add(task);
+            notifyItemInserted(tasks.size() - 1);
+        }
+    }
+
+activitymain.xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/taskRecycleView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"/>
+    <Button
+        android:id="@+id/addTaskButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Task"/>
+
+
+
+
+</LinearLayout>

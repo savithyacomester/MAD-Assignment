@@ -1,0 +1,299 @@
+activity_main.xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <ListView
+        android:id="@+id/taskListView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <Button
+        android:id="@+id/addTaskButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Task" />
+    >
+
+</LinearLayout>
+
+
+mainActivity.java
+package com.example.taskapplistview;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.ListView;
+
+import java.util.ArrayList;
+
+public class MainActivity extends AppCompatActivity {
+    private ListView taskListView;
+    private ArrayList<Task> taskList;
+    private TaskAdapter taskAdapter;
+    private static final int ADD_TASK_REQUEST_CODE = 1;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        taskListView = findViewById(R.id.taskListView);
+        taskList = new ArrayList<>();
+        taskAdapter = new TaskAdapter(this, taskList);
+        taskListView.setAdapter(taskAdapter);
+
+        Button addTaskButton = findViewById(R.id.addTaskButton);
+        addTaskButton.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, AddTask.class);
+            startActivityForResult(intent, ADD_TASK_REQUEST_CODE);
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == ADD_TASK_REQUEST_CODE && resultCode == RESULT_OK) {
+            String title = data.getStringExtra("title");
+            String description = data.getStringExtra("description");
+            addTaskToView(title, description);
+        }
+    }
+
+    private void addTaskToView(String title, String description) {
+        Task task = new Task(title, description);
+        taskList.add(task);
+        taskAdapter.notifyDataSetChanged();  // Update the list view
+    }
+
+}
+
+
+
+task.java
+package com.example.taskapplistview;
+
+public class Task {
+    private String title;
+    private String description;
+
+    public Task(String title, String description) {
+        this.title = title;
+        this.description = description;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+}
+
+
+taskAdapter.java
+package com.example.taskapplistview;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.TextView;
+
+import java.util.ArrayList;
+
+public class TaskAdapter extends ArrayAdapter<Task> {
+    private Context context;
+    private ArrayList<Task> tasks;
+
+    public TaskAdapter(Context context, ArrayList<Task> tasks) {
+        super(context, 0, tasks);
+        this.context = context;
+        this.tasks = tasks;
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        if (convertView == null) {
+            convertView = LayoutInflater.from(context).inflate(R.layout.activity_task_item, parent, false);
+        }
+
+        Task task = getItem(position);
+
+        TextView titleView = convertView.findViewById(R.id.titleView);
+        TextView descView = convertView.findViewById(R.id.descView);
+        Button deleteButton = convertView.findViewById(R.id.deleteButton);
+
+        titleView.setText(task.getTitle());
+        descView.setText(task.getDescription());
+
+        deleteButton.setOnClickListener(view -> {
+            tasks.remove(position);
+            notifyDataSetChanged(); // Update the ListView
+        });
+
+        return convertView;
+    }
+}
+
+
+
+activity_task_item.xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="10dp"
+    android:background="?android:attr/selectableItemBackground">
+
+    <TextView
+        android:id="@+id/titleView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textColor="@android:color/black" />
+
+    <TextView
+        android:id="@+id/descView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginTop="4dp" />
+
+    <Button
+        android:id="@+id/deleteButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Delete"
+        android:layout_marginTop="8dp" />
+</LinearLayout>
+
+
+
+activitymain>xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <ListView
+        android:id="@+id/taskListView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <Button
+        android:id="@+id/addTaskButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Task" />
+    >
+
+</LinearLayout>
+
+
+
+activity_add-task.xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- EditText for Task Title -->
+    <EditText
+        android:id="@+id/titleInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Task Title"
+        android:textSize="18sp"
+        android:inputType="text" />
+
+    <!-- EditText for Task Description -->
+    <EditText
+        android:id="@+id/descInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Task Description"
+        android:textSize="16sp"
+        android:inputType="textMultiLine"
+        android:minLines="3"
+        android:maxLines="5" />
+
+    <!-- Button to Save Task -->
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Save Task"
+        android:layout_marginTop="16dp" />
+</LinearLayout>
+
+
+addtask.java
+package com.example.taskapplistview;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+
+public class AddTask extends AppCompatActivity {
+    private EditText titleInput;
+    private EditText descInput;
+    private Button saveButton;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_add_task);
+        titleInput = findViewById(R.id.titleInput);
+        descInput = findViewById(R.id.descInput);
+        saveButton = findViewById(R.id.saveButton);
+
+        saveButton.setOnClickListener(view -> {
+            String title = titleInput.getText().toString();
+            String description = descInput.getText().toString();
+
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra("title", title);
+            resultIntent.putExtra("description", description);
+            setResult(RESULT_OK, resultIntent);
+            finish();
+        });
+    }
+}
+
+t5ask_item.java
+package com.example.taskapplistview;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Bundle;
+
+public class Task_Item extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_task_item);
+    }
+}
+
